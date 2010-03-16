@@ -1,35 +1,64 @@
 var http = require("http"),
     puts = require("sys").puts,
-    config = require("./config"),
-    fs = require("fs");
+    config = require(process.ARGV[2] || "./config"),
+    fs = require("fs"),
+    files = config.serverSettings.files || [],
+    responses = [];
+
+
+files.forEach( function (file) {
+
+    // if one of the files changed
+    fs.watchFile(file, function (curr, prev) {
+
+        if ((curr.mtime + "") != (prev.mtime + "")) {
+            puts(files + " changed");
+
+            if (responses.length > 0) {
+                responses.forEach( function (response) {
+                    if (response != null) {
+                        response.write("window.location.reload();");
+                        response.close();
+                        response = null;
+                    }
+                });
+                response = [];
+            } else {
+                puts("ERROR: no response object");
+            }
+        }
+    });
+});
 
 http.createServer(function (req, res) {
 
-    var files = config.serverSettings.files || [];
-
-    // if one of the files changed
-
-    // fs.watchFile(files[0], function (curr, prev) {
-    //     res.write("window.location.reload();");
-    //     res.close();
-    //     puts("changed");
-    // });
-
-    files.forEach( function (file) {
-        fs.watchFile(file, function (curr, prev) {
-            res.write("window.location.reload();");
-            res.close();
-        });
-    });
-
+    responses.push(res);
 
     process.addListener("SIGINT", function () {
-        res.close();
+
+        // closing the responses
+        responses.forEach( function (response) {
+
+           response.close();
+        });
+
         puts("good bye");
-        process.exit(0)
+        process.exit(0);
     });
 
     res.sendHeader( 200, {"Content-Type" : "text/javascript"} );
 
 
 }).listen(config.serverSettings.port || 8080);
+
+
+puts("Pokeserver");
+puts("----------");
+puts("Port: " + config.serverSettings.port || 8080);
+puts("Watched files");
+files.forEach( function (file) {
+    puts(file);
+});
+puts("----------");
+
+
