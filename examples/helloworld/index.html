@@ -1,15 +1,18 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
-    <head>
-        <script src="/Users/viktor/jquery-1.3.2/jquery-1.3.2.js"></script>
-    </head>
     <body>
         <h1>Welcome</h1>
-        <p>It works</p>
+        <p>It works.</p>
+
         <!-- This triggers the page reload -->
         <script>
-            $("head").append($("script").attr("src","http://localhost:8080/"));
+            var script = document.createElement("script"),
+                head = document.getElementsByTagName('head')[0];
+            if (head !== undefined) {
+                script.setAttribute("src","http://localhost:8080/");
+                head.appendChild(script);
+            }
         </script>
     </body>
 </html>
