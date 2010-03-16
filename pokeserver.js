@@ -1,29 +1,35 @@
 var http = require("http"),
     puts = require("sys").puts,
-    fs = require("fs"),
-    fn = "index.html"
+    config = require("./config"),
+    fs = require("fs");
 
 http.createServer(function (req, res) {
 
-    fs.watchFile(fn, function (curr, prev) {
-        res.write("window.location.reload();");
-        res.close();        
+    var files = config.serverSettings.files || [];
+
+    // if one of the files changed
+
+    // fs.watchFile(files[0], function (curr, prev) {
+    //     res.write("window.location.reload();");
+    //     res.close();
+    //     puts("changed");
+    // });
+
+    files.forEach( function (file) {
+        fs.watchFile(file, function (curr, prev) {
+            res.write("window.location.reload();");
+            res.close();
+        });
     });
-        
+
+
     process.addListener("SIGINT", function () {
         res.close();
-        puts("good bye"); 
-        process.exit(0) 
-    });    
-    
-    // we handle the /pokenode only
-    if (req.url === "/pokenode") {
-        res.sendHeader( 200, {"Content-Type" : "text/javascript"} );
-    } else {
-        // bad request
-        res.sendHeader(400);
-        res.close();
-    }
-    
-    
-}).listen(8000);
+        puts("good bye");
+        process.exit(0)
+    });
+
+    res.sendHeader( 200, {"Content-Type" : "text/javascript"} );
+
+
+}).listen(config.serverSettings.port || 8080);
