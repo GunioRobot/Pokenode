@@ -20,7 +20,7 @@ PokeNode requires [NodeJS](http://nodejs.org).
 
 Running the Hello World example
 ------------
-Run the __helloworld.sh__ shell script in the root of the Pokenode server folder. It will start the Pokenode server with the configuration file found in this folder.
+Run the __helloworld.sh__ shell script in the root of the Pokenode server folder. It will start the Pokenode server with the configuration file found in the examples/helloworld folder.
 
 You'll see something like this
 <pre>
