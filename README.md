@@ -46,13 +46,14 @@ After this, you're ready to change the content of the HTML and magically after y
 The configuration file is a JavaScript file containing a object literal.
 
 Here is an example
-`exports.serverSettings = {
+<pre><code>
+exports.serverSettings = {
     port: 8080,
     files: [
         './examples/helloworld/index.html'
     ],
     callback: './examples/helloworld/reload.js'
 };
-`
+</code></pre>
 
 The files array contains all the files that the server should watch.
