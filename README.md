@@ -13,8 +13,13 @@ Picture this; you're developing an HTML file and you want to see the changes you
 
 Not anymore! Here comes the PokeNode Server to help, it does the reloading for you.
 
+Before the pleasure
+------------
+PokeNode requires [NodeJS](http://nodejs.org).
 
-### Running the Hello World example
+
+Running the Hello World example
+------------
 Run the __helloworld.sh__ shell script in the root of the Pokenode server folder. It will start the Pokenode server with the configuration file found in this folder.
 
 You'll see something like this
@@ -41,7 +46,8 @@ Now, open the __index.html__ in your browser by simply entering the path to the 
 
 After this, you're ready to change the content of the HTML and magically after you saved the changes, you'll see the changes in the browser. Hoorah for PokeNode!
 
-### Configuration file
+Configuration file
+------------
 
 The configuration file is a JavaScript file containing a object literal.
 
@@ -57,3 +63,8 @@ exports.serverSettings = {
 </code></pre>
 
 The files array contains all the files that the server should watch.
+
+Contributors
+------------
+
+* [Viktor Kelemen](http://yikulju.com)
