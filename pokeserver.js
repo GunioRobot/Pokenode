@@ -4,6 +4,7 @@ var http = require("http"),
     config = require(configFile),
     fs = require("fs"),
     responses = [],
+    files = config.serverSettings.files || [],
     callbackContent = "";
 
 
@@ -13,18 +14,21 @@ puts("   (o>");
 puts("\\\\_//)");
 puts(" \\_/_)");
 puts("  _|_");
-puts("Pokeserver");
+puts("Pokeserver\n");
 
-puts("  used port: " + config.serverSettings.port || 8080);
-puts("  config file: " + configFile);
-puts("  watched files:");
+puts("used port: " + config.serverSettings.port || 8080);
+puts("config file: " + configFile);
+puts("watched files:");
 files.forEach( function (file) {
-    puts("      " + file);
+    puts("  " + file);
 });
 
 
 readCallback(config.serverSettings.callback || "", function (data) {
     callbackContent = data;
+    puts("\ncallback:");
+    puts(callbackContent);
+    puts("\n");
 });
 
 watchFiles(config.serverSettings.files || []);
@@ -96,7 +100,7 @@ function watchFiles(files) {
                 if (responses.length > 0) {
                     responses.forEach( function (response) {
                         if (response != null) {
-                            response.write("window.location.reload();");
+                            response.write(callbackContent);
                             response.close();
                             response = null;
                         }
