@@ -1,7 +1,7 @@
 Hello world example
 ------------------------------------------------------------
 
-When you change the __index.html__, the content of the __reload.js__ will be inserted into this HTML. In our case this is a `window.location.reload();`.
+When you change the __index.html__, the content of the __reload.js__ will be inserted into this HTML. In our case this is a `window.location.reload();`, hence the page will reload.
 
 ### Running
 
