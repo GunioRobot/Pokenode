@@ -9,13 +9,13 @@
 ------------------
 PokeNode Server is little "push notification" utility based on NodeJS.
 
-For instance, you're developing an HTML file and you want to see the changes you made, you have to reload the page.
+Picture this; you're developing an HTML file and you want to see the changes you made but you have to reload the page every time.
 
-Not anymore, here comes the PokeNode Server to help, it does the reloading instead of you.
+Not anymore! Here comes the PokeNode Server to help, it does the reloading for you.
 
 
 ### Running the Hello World example
-Run the __helloworld.sh__ shell script inthe root of the Pokenode server folder. It will start the Pokenode server with the configuration file found in this folder.
+Run the __helloworld.sh__ shell script in the root of the Pokenode server folder. It will start the Pokenode server with the configuration file found in this folder.
 
 You'll see something like this
 <pre>
@@ -37,9 +37,9 @@ window.location.reload();
 
 The server successfully started on the 8080 port, and it's using the ./examples/helloworld/config.js config file.
 
-Now, open the __index.html__ in your browser by simply putting the full file path of the file.
+Now, open the __index.html__ in your browser by simply entering the path to the file in the browser address bar or selecting "open" then browsing to the file.
 
-After this, you're ready to change the content of the HTML, and magically after you saved the changes, you'll see the changes in the browser.
+After this, you're ready to change the content of the HTML and magically after you saved the changes, you'll see the changes in the browser. Hoorah for PokeNode!
 
 ### Configuration file
 
