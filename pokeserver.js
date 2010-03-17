@@ -1,35 +1,36 @@
 var http = require("http"),
     puts = require("sys").puts,
-    config = require(process.ARGV[2] || "./config"),
+    configFile = process.ARGV[2] || "./config",
+    config = require(configFile),
     fs = require("fs"),
-    files = config.serverSettings.files || [],
-    responses = [];
+    responses = [],
+    callbackContent = "";
 
 
+
+puts("   \\\\");
+puts("   (o>");
+puts("\\\\_//)");
+puts(" \\_/_)");
+puts("  _|_");
+puts("Pokeserver");
+
+puts("  used port: " + config.serverSettings.port || 8080);
+puts("  config file: " + configFile);
+puts("  watched files:");
 files.forEach( function (file) {
-
-    // if one of the files changed
-    fs.watchFile(file, function (curr, prev) {
-
-        if ((curr.mtime + "") != (prev.mtime + "")) {
-            puts(files + " changed");
-
-            if (responses.length > 0) {
-                responses.forEach( function (response) {
-                    if (response != null) {
-                        response.write("window.location.reload();");
-                        response.close();
-                        response = null;
-                    }
-                });
-                response = [];
-            } else {
-                puts("ERROR: no response object");
-            }
-        }
-    });
+    puts("      " + file);
 });
 
+
+readCallback(config.serverSettings.callback || "", function (data) {
+    callbackContent = data;
+});
+
+watchFiles(config.serverSettings.files || []);
+
+
+// creating a http server
 http.createServer(function (req, res) {
 
     responses.push(res);
@@ -52,13 +53,59 @@ http.createServer(function (req, res) {
 }).listen(config.serverSettings.port || 8080);
 
 
-puts("Pokeserver");
-puts("----------");
-puts("Port: " + config.serverSettings.port || 8080);
-puts("Watched files");
-files.forEach( function (file) {
-    puts(file);
-});
-puts("----------");
 
 
+
+
+/**
+* Reads the callback file
+*
+* @param fn {String} Filename
+* @param successHandler {Function}
+*/
+function readCallback(fn, successHandler) {
+
+    if (fn !== "") {
+        fs.readFile(fn, function (err, data) {
+            if (err) {
+              throw err;
+            }
+
+            if (successHandler !== undefined) {
+                successHandler(data);
+            }
+        });
+    }
+}
+
+/**
+* Adds change listener to the files
+*
+* @param files {Array}
+*/
+function watchFiles(files) {
+
+    files.forEach( function (file) {
+
+        // if one of the files changed
+        fs.watchFile(file, function (curr, prev) {
+
+            if ((curr.mtime + "") != (prev.mtime + "")) {
+                puts(files + " changed");
+
+                if (responses.length > 0) {
+                    responses.forEach( function (response) {
+                        if (response != null) {
+                            response.write("window.location.reload();");
+                            response.close();
+                            response = null;
+                        }
+                    });
+                    response = [];
+                } else {
+                    puts("ERROR: no response object");
+                }
+            }
+        });
+    });
+}
