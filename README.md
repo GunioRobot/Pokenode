@@ -22,8 +22,8 @@ You'll see something like this
    \\
    (o>
 \\_//)
- \_/_)
-  _|_
+ \_/_)      
+  _|_   .  \|/  \./
 Pokeserver
 
 used port: 8080
