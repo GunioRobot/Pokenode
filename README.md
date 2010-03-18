@@ -13,7 +13,7 @@ Picture this; you're developing an HTML file and you want to see the changes you
 
 Not anymore! Here comes the PokeNode Server to help, it does the reloading for you.
 
-<object width="640" height="385"><param name="movie" value="http://www.youtube.com/v/qvy0mPt6Vzo&hl=en_US&fs=1&"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/qvy0mPt6Vzo&hl=en_US&fs=1&" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="385"></embed></object>
+[PokeNode intro on Youtube](http://www.youtube.com/watch?v=qvy0mPt6Vzo)
 
 
 Before the pleasure
