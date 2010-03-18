@@ -75,7 +75,7 @@ License
 
 (The MIT License)
 
-Copyright (c) 2009 RosePad &lt;dev@rosepad.com&gt;
+Copyright (c) 2009 Viktor Kelemen &lt;kelemen.viktor@gmail.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
