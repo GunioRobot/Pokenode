@@ -18,10 +18,6 @@ puts("Pokeserver\n");
 
 puts("used port: " + config.serverSettings.port || 8080);
 puts("config file: " + configFile);
-puts("watched files:");
-files.forEach( function (file) {
-    puts("  " + file);
-});
 
 
 readCallback(config.serverSettings.callback || "", function (data) {
@@ -31,7 +27,29 @@ readCallback(config.serverSettings.callback || "", function (data) {
     puts("\n");
 });
 
-watchFiles(config.serverSettings.files || []);
+
+var watchedFiles = [];
+
+// It goes through the files
+files.forEach( function (file) {
+
+    var stat = fs.statSync(file),
+        fileList;
+    if (stat !== undefined) {
+
+        // if it's a directory we go into
+        if (stat.isDirectory()) {
+            fileList = parseFolder(file);
+
+            watchedFiles = watchedFiles.concat(fileList);
+        } else {
+            watchedFiles.push(file);
+        }
+    }
+});
+
+
+watchFiles(watchedFiles);
 
 
 // creating a http server
@@ -58,7 +76,34 @@ http.createServer(function (req, res) {
 
 
 
+/**
+* Parses a folder and returns a list of files
+*
+* @param root {String}
+* @return {Array}
+*/
+function parseFolder(root) {
 
+    var fileList = [];
+
+    var files = fs.readdirSync(root);
+
+    files.forEach( function (file) {
+
+        var path = root + "/" + file;
+
+        var stat = fs.statSync(path);
+        if (stat !== undefined && !stat.isDirectory()) {
+            fileList.push(path);
+        }
+
+        if (stat !== undefined && stat.isDirectory()) {
+            fileList = fileList.concat(parseFolder(path));
+        }
+    });
+
+    return fileList;
+}
 
 
 /**
@@ -89,13 +134,20 @@ function readCallback(fn, successHandler) {
 */
 function watchFiles(files) {
 
+    var config = { persistent: true,
+                   interval: 0
+    };
+
+    puts("watched files:");
+
     files.forEach( function (file) {
 
+        puts(file);
         // if one of the files changed
-        fs.watchFile(file, function (curr, prev) {
+        fs.watchFile(file, config, function (curr, prev) {
 
             if ((curr.mtime + "") != (prev.mtime + "")) {
-                puts(files + " changed");
+                puts(file + " changed");
 
                 if (responses.length > 0) {
                     responses.forEach( function (response) {
