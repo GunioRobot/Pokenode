@@ -12,7 +12,7 @@ var http = require("http"),
     mime = require('./mime');
 
 
-var foreignHostPort = "4000";
+var foreignHostPort = "8888";
 
 var customContentFile = "pokeserver.html",
     customContent = "";
@@ -62,7 +62,9 @@ watchFiles(watchedFiles);
 // creating a http server
 http.createServer(function (req, res) {
 
-    switch (req.url) {
+    var pathname = url.parse(req.url).pathname;
+
+    switch (pathname) {
 
         case "/pokenodeserver/callback":
 
@@ -238,8 +240,7 @@ function proxy(req, htmlCallback, nonHtmlCallback) {
             req.addListener("end", function () {
 
                // fetching the content from the server
-               request(req.method,"http://" + parsed.hostname + ":" + foreignHostPort + req.url, sentData, header, function (status, buffer, response) {
-                   puts("http://" + parsed.hostname + ":" + foreignHostPort + req.url);
+               fetchData(req.method,"http://" + parsed.hostname + ":" + foreignHostPort + req.url, sentData, header, function (status, buffer, response) {
 
                    if (htmlCallback !== undefined) {
 
@@ -271,10 +272,11 @@ function proxy(req, htmlCallback, nonHtmlCallback) {
  * @param  {number} redirects
  * @api private
  */
-function request(method, url, data, headers, callback, redirects) {
+function fetchData(method, url, data, headers, callback, redirects) {
+
   var buf = '',
       redirects = redirects || 3,
-      url = parse(url),
+      url = parse(url || ""),
       path = url.pathname || '/',
       search = url.search || '',
       hash = url.hash || '',
@@ -317,7 +319,7 @@ function request(method, url, data, headers, callback, redirects) {
 
       redirects--;
       if (redirects > 0) {
-        request(method, res.headers.location, headers, data, callback, redirects);
+        fetchData(method, res.headers.location, headers, data, callback, redirects);
       } else {
         callback(new Error('maximum number of redirects reached'));
       }
