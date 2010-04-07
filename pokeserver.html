@@ -12,7 +12,7 @@
 
     // inserting the new one
     script = document.createElement("script");
-    script.setAttribute("src","http://localhost:" + portNumber + "/?rnd=" + Math.round(rnd));
+    script.setAttribute("src","http://localhost:" + portNumber + "/pokenodeserver/callback?rnd=" + Math.round(rnd));
     head = document.getElementsByTagName('head')[0];
 
     if (head !== undefined) {
