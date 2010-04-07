@@ -1,37 +1,34 @@
 var http = require("http"),
-    puts = require("sys").puts,
-    configFile = process.ARGV[2] || "./config",
-    config = require(configFile),
+    sys = require("sys"),
     fs = require("fs"),
-    responses = [],
-    files = config.serverSettings.files || [],
-    callbackContent = "",
     url = require("url"),
-    parse = require('url').parse,
     queryString = require('querystring'),
     mime = require('./mime');
 
+var configFile = process.ARGV[2] || "./config",
+    config = require(configFile),
+    responses = [],
+    files = config.serverSettings.files || [],
+    foreignHostPort = config.serverSettings.remotePort || 8888,
+    customContentFile = config.serverSettings.contentFile || "pokeserver.html";
 
-var foreignHostPort = "8888";
-
-var customContentFile = "pokeserver.html",
-    customContent = "";
+var customContent = "",
+    callbackContent = "";
 
 customContent = fs.readFileSync(customContentFile);
-
 
 // PokeNode logo
 drawLogo();
 
-puts("used port: " + config.serverSettings.port || 8080);
-puts("config file: " + configFile);
+sys.puts("used port: " + config.serverSettings.port || 8080);
+sys.puts("config file: " + configFile);
 
 
 readCallback(config.serverSettings.callback || "", function (data) {
     callbackContent = data;
-    puts("\ncallback:");
-    puts(callbackContent);
-    puts("\n");
+    sys.puts("\ncallback:");
+    sys.puts(callbackContent);
+    sys.puts("\n");
 });
 
 
@@ -78,11 +75,11 @@ http.createServer(function (req, res) {
                    response.close();
                 });
 
-                puts("good bye");
+                sys.puts("good bye");
                 process.exit(0);
             });
 
-            res.sendHeader( 200, {"Content-Type" : "text/javascript"} );
+            res.writeHead( 200, {"Content-Type" : "text/javascript"} );
 
             break;
 
@@ -110,7 +107,7 @@ http.createServer(function (req, res) {
                 res.close();
             }, function (loc) {
 
-                res.sendHeader("302", { location: loc });
+                res.writeHead("302", { location: loc });
                 res.close();
             });
     }
@@ -181,16 +178,16 @@ function watchFiles(files) {
                    interval: 0
     };
 
-    puts("watched files:");
+    sys.puts("watched files:");
 
     files.forEach( function (file) {
 
-        puts(file);
+        sys.puts(file);
         // if one of the files changed
         fs.watchFile(file, config, function (curr, prev) {
 
             if ((curr.mtime + "") != (prev.mtime + "")) {
-                puts(file + " changed");
+                sys.puts(file + " changed");
 
                 if (responses.length > 0) {
                     responses.forEach( function (response) {
@@ -202,7 +199,7 @@ function watchFiles(files) {
                     });
                     response = [];
                 } else {
-                    puts("ERROR: no response object");
+                    sys.puts("ERROR: no response object");
                 }
             }
         });
@@ -272,18 +269,18 @@ function proxy(req, htmlCallback, nonHtmlCallback) {
  * @param  {number} redirects
  * @api private
  */
-function fetchData(method, url, data, headers, callback, redirects) {
+function fetchData(method, uri, data, headers, callback, redirects) {
 
   var buf = '',
       redirects = redirects || 3,
-      url = parse(url || ""),
-      path = url.pathname || '/',
-      search = url.search || '',
-      hash = url.hash || '',
-      port = url.port || 80,
-      client = http.createClient(port, url.hostname);
+      uri = url.parse(uri || ""),
+      path = uri.pathname || '/',
+      search = uri.search || '',
+      hash = uri.hash || '',
+      port = uri.port || 80,
+      client = http.createClient(port, uri.hostname);
 
-  headers.host = url.hostname;
+  headers.host = uri.hostname;
 
   if (headers.redirect) {
       redirects = headers.redirect;
@@ -340,11 +337,11 @@ function fetchData(method, url, data, headers, callback, redirects) {
 
 function drawLogo() {
 
-    puts("   \\\\");
-    puts("   (o>");
-    puts("\\\\_//)");
-    puts(" \\_/_)");
-    puts("  _|_");
-    puts("Pokeserver\n");
+    sys.puts("   \\\\");
+    sys.puts("   (o>");
+    sys.puts("\\\\_//)");
+    sys.puts(" \\_/_)");
+    sys.puts("  _|_");
+    sys.puts("Pokeserver\n");
 }
 
