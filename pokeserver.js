@@ -3,6 +3,7 @@ var http = require("http"),
     fs = require("fs"),
     url = require("url"),
     queryString = require('querystring'),
+    proxy = require('../nodeproxy/nodeproxy'),
     mime = require('./mime');
 
 var configFile = process.ARGV[2] || "./config",
@@ -10,6 +11,7 @@ var configFile = process.ARGV[2] || "./config",
     responses = [],
     files = config.serverSettings.files || [],
     foreignHostPort = config.serverSettings.remotePort || 8888,
+    foreignHost = config.serverSettings.remoteHost || "localhost",
     customContentFile = config.serverSettings.contentFile || "pokeserver.html";
 
 var customContent = "",
@@ -72,7 +74,7 @@ http.createServer(function (req, res) {
                 // closing the responses
                 responses.forEach( function (response) {
 
-                   response.close();
+                   response.end();
                 });
 
                 sys.puts("good bye");
@@ -88,31 +90,45 @@ http.createServer(function (req, res) {
 
         default:
 
-            proxy(req, function (status, buffer, response) {
+            proxy.nodeProxy(req, { foreignHost: foreignHost, foreignHostPort: foreignHostPort }, function (status, buffer, request, response, loc) {
 
-                var endIndex = buffer.lastIndexOf("</body>"),
-                    head = buffer.substring(0, endIndex),
-                    tail = buffer.substring(endIndex, buffer.length),
-                    content = head + customContent + tail;
+                if (status > 400) {
+                    res.writeHead(status);
+                } else {
 
-                // modifying the length
-                var headers = response.headers;
+                    var headers = response.headers;
 
-                headers["content-length"] = content.length;
-                delete headers["Content-Length"];
+                    if (buffer !== undefined) {
 
-                res.writeHead(response.statusCode, headers);
+                        var endIndex = buffer.lastIndexOf("</body>"),
+                            head = buffer.substring(0, endIndex),
+                            tail = buffer.substring(endIndex, buffer.length),
+                            content = head + customContent + tail;
 
-                res.write(content);
-                res.close();
+
+                        // set up the length
+                        headers["content-length"] = content.length;
+                    }
+
+                    headers["referer"] = "http://" + foreignHost + ":" + foreignHostPort + req.url;
+
+                    res.writeHead("200", headers);
+
+                    if (content !== undefined && request.statusCode !== 304) {
+                        res.write(content);
+                    }
+
+                }
+                res.end();
+
             }, function (loc) {
 
                 res.writeHead("302", { location: loc });
-                res.close();
+                res.end();
             });
     }
 
-}).listen(config.serverSettings.port || 8080);
+}).listen(config.serverSettings.port || 7777);
 
 
 
@@ -193,7 +209,7 @@ function watchFiles(files) {
                     responses.forEach( function (response) {
                         if (response != null) {
                             response.write(callbackContent);
-                            response.close();
+                            response.end();
                             response = null;
                         }
                     });
@@ -204,135 +220,6 @@ function watchFiles(files) {
             }
         });
     });
-}
-
-function proxy(req, htmlCallback, nonHtmlCallback) {
-
-
-    var header = req.headers,
-        host = header.host;
-
-    var parsed = url.parse("http://"+host);
-
-    var path = req.url.split("."),
-        fileExtension = path[path.length - 1],
-        loc = "http://" + parsed.hostname + ":" + foreignHostPort + req.url,
-        sentData = "";
-
-    var mimeType = mime.types[fileExtension] || "text/html";
-
-
-    switch (mimeType) {
-
-      case "text/html":
-      case "application/xhtml+xml":
-
-            // if it is HTML, we insert our custom code
-
-            req.addListener("data", function (data) {
-                sentData += data;
-            });
-
-
-            req.addListener("end", function () {
-
-               // fetching the content from the server
-               fetchData(req.method,"http://" + parsed.hostname + ":" + foreignHostPort + req.url, sentData, header, function (status, buffer, response) {
-
-                   if (htmlCallback !== undefined) {
-
-                       htmlCallback(status, buffer, response);
-                   }
-               });
-            });
-
-            break;
-
-      default:
-
-        if (nonHtmlCallback !== undefined) {
-            nonHtmlCallback(loc);
-        }
-    }
-
-}
-
-
-/**
- * Mega super awesome private request utility.
- *
- * @param  {string} method
- * @param  {string} url
- * @param  {hash} data
- * @param  {hash} headers
- * @param  {function} callback
- * @param  {number} redirects
- * @api private
- */
-function fetchData(method, uri, data, headers, callback, redirects) {
-
-  var buf = '',
-      redirects = redirects || 3,
-      uri = url.parse(uri || ""),
-      path = uri.pathname || '/',
-      search = uri.search || '',
-      hash = uri.hash || '',
-      port = uri.port || 80,
-      client = http.createClient(port, uri.hostname);
-
-  headers.host = uri.hostname;
-
-  if (headers.redirect) {
-      redirects = headers.redirect;
-      delete headers.redirect;
-  }
-
-   if (data) {
-
-        if (typeof data != 'string') {
-           data = queryString.stringify(data);
-        }
-
-        if (method === 'GET') {
-          search += (search ? '&' : '?') + data;
-        } else {
-          headers['content-length'] = data.length;
-          headers['content-type'] = 'application/x-www-form-urlencoded';
-        }
-  }
-
-  var req = client.request(method, path + search + hash, headers);
-
-  if (data && method !== 'GET') {
-      req.write(data);
-  }
-
-  req.addListener('response', function(res) {
-
-    if (req.statusCode < 200 || req.statusCode >= 400) {
-      callback(new Error('request failed with status ' + res.statusCode + ' "' + http.STATUS_CODES[res.statusCode] + '"'));
-
-    } else if (res.statusCode >= 300 && res.statusCode < 400) {
-
-      redirects--;
-      if (redirects > 0) {
-        fetchData(method, res.headers.location, headers, data, callback, redirects);
-      } else {
-        callback(new Error('maximum number of redirects reached'));
-      }
-    } else {
-      res.setBodyEncoding('utf8');
-      res.addListener('data', function (chunk) {
-          buf += chunk ;
-      });
-
-      res.addListener('end', function () {
-          callback(null, buf, res);
-      });
-    }
-  });
-
-  req.close();
 }
 
 function drawLogo() {
