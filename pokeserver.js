@@ -20,6 +20,15 @@ var customContent = "",
     callbackContent = "";
 
 
+var logFile = fs.openSync("console.log", "w");
+
+var OKBLUE = '\033[94m',
+    OKGREEN = '\033[92m',
+    WARNING = '\033[93m',
+    ERROR = '\033[91m',
+    ENDC = '\033[0m';
+
+
 /**
 * Parses a folder and returns a list of files
 *
@@ -180,9 +189,55 @@ watchFiles(watchedFiles, function () {
 // creating a http server
 http.createServer(function (req, res) {
 
-    var pathname = url.parse(req.url).pathname;
+    var pathname = url.parse(req.url).pathname,
+        params = "";
+
+    req.addListener("data", function (data) {
+        params += data;
+    });
 
     switch (pathname) {
+
+        case "/pokenodeserver/consolelog":
+
+            req.addListener("end", function () {
+
+                var parsedParams = queryString.parse(params);
+                fs.write(logFile, OKBLUE + parsedParams.msg + ENDC + '\t\n');
+
+                res.sendHeader( 200, {"Content-Type" : "text/html"} );
+                res.end();
+            });
+
+            break;
+
+        case "/pokenodeserver/consoleerror":
+
+            req.addListener("end", function () {
+
+                var parsedParams = queryString.parse(params);
+                fs.write(logFile, ERROR + parsedParams.msg + ENDC + '\t\n');
+
+                res.sendHeader( 200, {"Content-Type" : "text/html"} );
+                res.end();
+            });
+
+            break;
+
+
+        case "/pokenodeserver/consolewarning":
+
+            req.addListener("end", function () {
+
+                var parsedParams = queryString.parse(params);
+                fs.write(logFile, WARNING + parsedParams.msg + ENDC + '\t\n');
+
+                res.sendHeader( 200, {"Content-Type" : "text/html"} );
+                res.end();
+            });
+
+            break;
+
 
         case "/pokenodeserver/callback":
 
@@ -205,7 +260,7 @@ http.createServer(function (req, res) {
             break;
 
         case "pokenodeserver/admin":
-            // implementation later
+            // later
 
         default:
 

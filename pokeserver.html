@@ -3,7 +3,8 @@
     var script = document.getElementById("pokenode-server-callback"),
         head,
         rnd = Math.random() * 10000,
-        portNumber = 7777;
+        portNumber = 7777,
+        serverURL = '/pokenodeserver';
 
     // removing the old script tag
     if (script != null && script.parentNode != null) {
@@ -19,5 +20,46 @@
         head.appendChild(script);
     }
     script.setAttribute("id","pokenode-server-callback");
+
+
+(function () {
+
+    function XHR(url, params) {
+        var req = new XMLHttpRequest();
+        req.open('POST', url, true);
+        req.send(params);
+    }
+
+    function makeAlias(object, name) {
+        var fn = object[name];
+        return function () {
+            return fn.apply(object, arguments);
+        };
+    }
+
+    var _log = makeAlias(console, "log"),
+        _warning = makeAlias(console, "warn"),
+        _error = makeAlias(console, "error");
+
+
+    console.log = function (msg) {
+
+        _log(msg);
+        XHR(serverURL + "/consolelog", "msg=" + msg);
+    };
+
+    console.error = function (msg) {
+
+        _error(msg);
+        XHR(serverURL + "/consoleerror", "msg=" + msg);
+    };
+
+    console.warning = function (msg) {
+
+        _warning(msg);
+        XHR(serverURL + "/consolewarning", "msg=" + msg);
+    };
+})();
+
 
 </script>
