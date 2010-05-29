@@ -14,7 +14,8 @@ var configFile = process.ARGV[2] || "./config",
     foreignHostPort = config.serverSettings.remotePort || constants.defaults.foreignHostPort,
     foreignHost = config.serverSettings.remoteHost || constants.defaults.foreignHost,
     customContentFile = config.serverSettings.contentFile || constants.defaults.customContentFile,
-    callbackFile = config.serverSettings.callback || "";
+    callbackFile = config.serverSettings.callback || "",
+    serverPort = config.serverSettings.port || constants.defaults.serverPort;
 
 var customContent = "",
     callbackContent = "";
@@ -130,10 +131,14 @@ function drawLogo() {
 // this does the client side polling
 customContent = fs.readFileSync(customContentFile);
 
+customContent = customContent.replace(/{pokenodeserverPort}/,serverPort);
+customContent = customContent.replace(/{pokenodeserverHost}/,constants.defaults.serverHost);
+customContent = customContent.replace(/{pokenodeserverURL}/,constants.defaults.serverURL);
+
 // PokeNode logo
 drawLogo();
 
-sys.puts("used port: " + config.serverSettings.port || 8080);
+sys.puts("used port: " + serverPort);
 sys.puts("config file: " + configFile);
 
 // If we have callback content we use it, if we don't have it there is a default
@@ -302,7 +307,4 @@ http.createServer(function (req, res) {
             });
     }
 
-}).listen(config.serverSettings.port || 7777);
-
-
-
+}).listen(serverPort);
