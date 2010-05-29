@@ -17,6 +17,105 @@ var configFile = process.ARGV[2] || "./config",
 var customContent = "",
     callbackContent = "";
 
+
+/**
+* Parses a folder and returns a list of files
+*
+* @param root {String}
+* @return {Array}
+*/
+function parseFolder(root) {
+
+    var fileList = [];
+
+    var files = fs.readdirSync(root);
+
+    files.forEach( function (file) {
+
+        var path = root + "/" + file;
+
+        var stat = fs.statSync(path);
+        if (stat !== undefined && !stat.isDirectory()) {
+            fileList.push(path);
+        }
+
+        if (stat !== undefined && stat.isDirectory()) {
+            fileList = fileList.concat(parseFolder(path));
+        }
+    });
+
+    return fileList;
+}
+
+
+/**
+* Reads the callback file
+*
+* @param fn {String} Filename
+* @param successHandler {Function}
+*/
+function readCallback(fn, successHandler) {
+
+    if (fn !== "") {
+        fs.readFile(fn, function (err, data) {
+            if (err) {
+              throw err;
+            }
+
+            if (successHandler !== undefined) {
+                successHandler(data);
+            }
+        });
+    }
+}
+
+/**
+* Adds change listener to the files
+*
+* @param files {Array}
+*/
+function watchFiles(files, callback) {
+
+    var config = { persistent: true,
+                   interval: 0
+    };
+
+    sys.puts("watched files:");
+
+    files.forEach( function (file) {
+
+        sys.puts(file);
+        // if one of the files changed
+        fs.watchFile(file, config, function (curr, prev) {
+
+            if ((curr.mtime + "") != (prev.mtime + "")) {
+                sys.puts(file + " changed");
+
+                if (callback !== undefined) {
+                    callback();
+                }
+            }
+        });
+    });
+}
+
+function drawLogo() {
+
+    sys.puts("   \\\\");
+    sys.puts("   (o>");
+    sys.puts("\\\\_//)");
+    sys.puts(" \\_/_)");
+    sys.puts("  _|_");
+    sys.puts("Pokeserver\n");
+}
+
+
+
+/****************
+    MAIN
+****************/
+
+
 customContent = fs.readFileSync(customContentFile);
 
 // PokeNode logo
@@ -36,11 +135,12 @@ readCallback(config.serverSettings.callback || "", function (data) {
 
 var watchedFiles = [];
 
-// It goes through the files
+// Checking the Files
 files.forEach( function (file) {
 
     var stat = fs.statSync(file),
         fileList;
+
     if (stat !== undefined) {
 
         // if it's a directory we go into
@@ -54,8 +154,22 @@ files.forEach( function (file) {
     }
 });
 
+// callback for file changes
+watchFiles(watchedFiles, function () {
 
-watchFiles(watchedFiles);
+    if (responses.length > 0) {
+        responses.forEach( function (response) {
+            if (response != null) {
+                response.write(callbackContent);
+                response.end();
+                response = null;
+            }
+        });
+        response = [];
+    } else {
+        sys.puts("ERROR: no response object");
+    }
+});
 
 
 // creating a http server
@@ -131,104 +245,4 @@ http.createServer(function (req, res) {
 }).listen(config.serverSettings.port || 7777);
 
 
-
-/**
-* Parses a folder and returns a list of files
-*
-* @param root {String}
-* @return {Array}
-*/
-function parseFolder(root) {
-
-    var fileList = [];
-
-    var files = fs.readdirSync(root);
-
-    files.forEach( function (file) {
-
-        var path = root + "/" + file;
-
-        var stat = fs.statSync(path);
-        if (stat !== undefined && !stat.isDirectory()) {
-            fileList.push(path);
-        }
-
-        if (stat !== undefined && stat.isDirectory()) {
-            fileList = fileList.concat(parseFolder(path));
-        }
-    });
-
-    return fileList;
-}
-
-
-/**
-* Reads the callback file
-*
-* @param fn {String} Filename
-* @param successHandler {Function}
-*/
-function readCallback(fn, successHandler) {
-
-    if (fn !== "") {
-        fs.readFile(fn, function (err, data) {
-            if (err) {
-              throw err;
-            }
-
-            if (successHandler !== undefined) {
-                successHandler(data);
-            }
-        });
-    }
-}
-
-/**
-* Adds change listener to the files
-*
-* @param files {Array}
-*/
-function watchFiles(files) {
-
-    var config = { persistent: true,
-                   interval: 0
-    };
-
-    sys.puts("watched files:");
-
-    files.forEach( function (file) {
-
-        sys.puts(file);
-        // if one of the files changed
-        fs.watchFile(file, config, function (curr, prev) {
-
-            if ((curr.mtime + "") != (prev.mtime + "")) {
-                sys.puts(file + " changed");
-
-                if (responses.length > 0) {
-                    responses.forEach( function (response) {
-                        if (response != null) {
-                            response.write(callbackContent);
-                            response.end();
-                            response = null;
-                        }
-                    });
-                    response = [];
-                } else {
-                    sys.puts("ERROR: no response object");
-                }
-            }
-        });
-    });
-}
-
-function drawLogo() {
-
-    sys.puts("   \\\\");
-    sys.puts("   (o>");
-    sys.puts("\\\\_//)");
-    sys.puts(" \\_/_)");
-    sys.puts("  _|_");
-    sys.puts("Pokeserver\n");
-}
 
