@@ -3,8 +3,9 @@
     var script = document.getElementById("pokenode-server-callback"),
         head,
         rnd = Math.random() * 10000,
-        portNumber = 7777,
-        serverURL = '/pokenodeserver';
+        portNumber = {pokenodeserverPort},
+        serverURL = '{pokenodeserverURL}',
+        serverHost = '{pokenodeserverHost}';
 
     // removing the old script tag
     if (script != null && script.parentNode != null) {
@@ -13,7 +14,7 @@
 
     // inserting the new one
     script = document.createElement("script");
-    script.setAttribute("src","http://localhost:" + portNumber + "/pokenodeserver/callback?rnd=" + Math.round(rnd));
+    script.setAttribute("src","http://" + serverHost + ":" + portNumber + serverURL + "/callback?rnd=" + Math.round(rnd));
     head = document.getElementsByTagName('head')[0];
 
     if (head !== undefined) {
