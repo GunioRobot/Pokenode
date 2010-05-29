@@ -4,15 +4,17 @@ var http = require("http"),
     url = require("url"),
     queryString = require('querystring'),
     proxy = require('../nodeproxy/nodeproxy'),
-    mime = require('./mime');
+    mime = require('./mime'),
+    constants = require('./constants');
 
 var configFile = process.ARGV[2] || "./config",
     config = require(configFile),
     responses = [],
     files = config.serverSettings.files || [],
-    foreignHostPort = config.serverSettings.remotePort || 8888,
-    foreignHost = config.serverSettings.remoteHost || "localhost",
-    customContentFile = config.serverSettings.contentFile || "pokeserver.html";
+    foreignHostPort = config.serverSettings.remotePort || constants.defaults.foreignHostPort,
+    foreignHost = config.serverSettings.remoteHost || constants.defaults.foreignHost,
+    customContentFile = config.serverSettings.contentFile || constants.defaults.customContentFile,
+    callbackFile = config.serverSettings.callback || "";
 
 var customContent = "",
     callbackContent = "";
@@ -115,7 +117,8 @@ function drawLogo() {
     MAIN
 ****************/
 
-
+// This content will be inserted into the HTML
+// this does the client side polling
 customContent = fs.readFileSync(customContentFile);
 
 // PokeNode logo
@@ -124,13 +127,15 @@ drawLogo();
 sys.puts("used port: " + config.serverSettings.port || 8080);
 sys.puts("config file: " + configFile);
 
+// If we have callback content we use it, if we don't have it there is a default
+if (callbackFile !== "") {
+    readCallback(config.serverSettings.callback || "", function (data) {
+        callbackContent = data;
+    });
+} else {
+    callbackContent = constants.defaults.callbackContent;
+}
 
-readCallback(config.serverSettings.callback || "", function (data) {
-    callbackContent = data;
-    sys.puts("\ncallback:");
-    sys.puts(callbackContent);
-    sys.puts("\n");
-});
 
 
 var watchedFiles = [];
