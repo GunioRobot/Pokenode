@@ -130,6 +130,7 @@ function drawLogo() {
 // This content will be inserted into the HTML
 // this does the client side polling
 customContent = fs.readFileSync(customContentFile);
+customContent = customContent.toString();
 
 customContent = customContent.replace(/{pokenodeserverPort}/,serverPort);
 customContent = customContent.replace(/{pokenodeserverHost}/,constants.defaults.serverHost);
