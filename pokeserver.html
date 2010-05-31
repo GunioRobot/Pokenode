@@ -1,5 +1,7 @@
 <!-- This is the JavaScript bridge between the PokeNode Server and the browser -->
 <script>
+
+( function () {
     var script = document.getElementById("pokenode-server-callback"),
         head,
         rnd = Math.random() * 10000,
@@ -22,6 +24,7 @@
     }
     script.setAttribute("id","pokenode-server-callback");
 
+})();
 
 (function () {
 
