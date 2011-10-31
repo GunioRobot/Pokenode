@@ -4,7 +4,7 @@
 /**
  * Module dependencies.
  */
- 
+
 var extname = require('path').extname
 
 /**
@@ -363,8 +363,8 @@ exports.types = {
  */
 
 exports.type = function(path) {
-  return exports.types[path] || 
-         exports.types[extname(path).substr(1)] || 
-         set('default mime type') || 
-         'application/octet-stream' 
+  return exports.types[path] ||
+         exports.types[extname(path).substr(1)] ||
+         set('default mime type') ||
+         'application/octet-stream'
 }
